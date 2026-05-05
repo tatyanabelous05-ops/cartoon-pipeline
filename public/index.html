@@ -316,8 +316,8 @@ Return this exact JSON structure:
       "is_heygen": false,
       "should_split": false,
       "split_reason": "",
-      "image_prompt": "Detailed English prompt. Start with '${style}'. Describe: exact setting with lighting and atmosphere, each character by their visual description (NOT role name), positions, expressions, camera angle. 3-5 sentences.",
-      "video_prompt": "Kling AI English prompt. Describe motion/action. Then include ALL dialogue: [DIALOGUE: Character: 'line']. 2-3 sentences.",
+      "image_prompt": "Follow this exact structure: 1) Shot type (medium shot / close-up / wide shot etc) 2) Location with lighting description (e.g. 'lit by a soft warm floor lamp') 3) Characters wearing specific clothing (e.g. 'comfortable cotton pajamas') 4) Each character's exact body position, gesture, and facial expression 5) Key background details (furniture, objects, atmosphere). Use the character's visual description. Write in English, 3-5 sentences. Style: ${style}.",
+      "video_prompt": "Kling AI English prompt. Describe: 1) The motion and action in detail 2) Each character's emotional state and how it shows physically (tense shoulders, avoiding eye contact, soft smile, etc) 3) The mood/atmosphere of the scene. Then include ALL dialogue: [DIALOGUE: Character: 'line']. 3-4 sentences.",
       "heygen_notes": "If is_heygen: describe monologue delivery, emotion, pacing, character appearance"
     }
   ],
