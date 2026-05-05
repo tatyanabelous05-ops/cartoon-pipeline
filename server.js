@@ -9,32 +9,55 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', gemini_key_set: !!process.env.GEMINI_API_KEY });
+  res.json({ status: 'ok', openai_key_set: !!process.env.OPENAI_API_KEY });
 });
 
 app.post('/api/analyze', async (req, res) => {
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not set on server' });
+  const OPENAI_KEY = process.env.OPENAI_API_KEY;
+  if (!OPENAI_KEY) {
+    return res.status(500).json({ error: 'OPENAI_API_KEY not set on server' });
   }
 
+  const { systemPrompt, userText, images } = req.body;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: userText },
+        ...(images || []).map(img => ({
+          type: 'image_url',
+          image_url: { url: img.data, detail: 'low' }
+        }))
+      ]
+    }
+  ];
+
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
-      }
-    );
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages,
+        max_tokens: 4000,
+        temperature: 0.3
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Gemini API error' });
+      return res.status(response.status).json({ error: data.error?.message || 'OpenAI API error' });
     }
 
-    res.json(data);
+    const text = data.choices?.[0]?.message?.content || '';
+    res.json({ text });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -42,4 +65,5 @@ app.post('/api/analyze', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Cartoon Pipeline running on port ${PORT}`);
+  console.log(`OPENAI_API_KEY set: ${!!process.env.OPENAI_API_KEY}`);
 });
