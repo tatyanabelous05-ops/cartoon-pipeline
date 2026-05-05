@@ -294,7 +294,7 @@ async function analyze() {
     ? '\n\nCHARACTER REFERENCES:\n' + charsWithImages.map(c => `- Role: "${c.name}" ${c.imageB64 ? '(image attached)' : ''}`).join('\n')
     : '';
 
-  const systemPrompt = `You are a professional animation production assistant. Analyze the screenplay and return ONLY a valid JSON object (no markdown, no backticks).
+  const systemPrompt = `You are a professional animation production assistant. Analyze the screenplay and return ONLY a valid JSON object (no markdown, no backticks, no extra text).
 
 Style for this project: "${style}"${charDescSection}
 
@@ -346,10 +346,18 @@ Rules:
   setProgress(30, 'Надсилаємо до Gemini...');
 
   try {
+    const images = charsWithImages
+      .filter(c => c.imageB64)
+      .map(c => ({ role: c.name, data: c.imageB64 }));
+
     const resp = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }] })
+      body: JSON.stringify({
+        systemPrompt,
+        userText: 'SCREENPLAY:\n' + script + (images.length ? '\n\nCharacter reference images are attached.' : ''),
+        images
+      })
     });
 
     setProgress(70, 'Отримуємо відповідь...');
@@ -357,7 +365,7 @@ Rules:
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Server error');
 
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const raw = data.text || '';
     const clean = raw.replace(/```json|```/g, '').trim();
 
     setProgress(90, 'Парсимо результат...');
