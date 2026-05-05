@@ -294,7 +294,9 @@ async function analyze() {
     ? '\n\nCHARACTER REFERENCES:\n' + charsWithImages.map(c => `- Role: "${c.name}" ${c.imageB64 ? '(image attached)' : ''}`).join('\n')
     : '';
 
-  const systemPrompt = `You are a JSON API. You must respond with ONLY a valid JSON object. No explanations, no apologies, no markdown, no backticks, no text before or after the JSON. If you cannot process something, still return the JSON with your best effort. Never write "I'm sorry" or any other text.
+  const systemPrompt = `You are a JSON API. You must respond with ONLY a valid JSON object. No explanations, no apologies, no markdown, no backticks, no text before or after the JSON. Never write "I'm sorry" or any other text — only JSON.
+
+CRITICAL: You MUST process EVERY scene in the screenplay. If there are 24 scenes, output all 24. Do not stop early. Do not summarize. Every [Кадр N] or [Frame N] must become a separate scene object in the array.
 
 Animation project style: "${style}"${charDescSection}
 
@@ -325,25 +327,14 @@ Return this exact JSON structure:
 }
 
 Rules:
+- PROCESS ALL SCENES — never skip any
 - is_heygen = true only if one character speaks 3+ consecutive sentences
 - should_split = true if scene has very distinct location changes
 - Describe characters in prompts by visual appearance only, never by role name
 - Always include actual dialogue text in video_prompt
 - Return ONLY the JSON, nothing else`;
 
-  const parts = [{ text: systemPrompt + '\n\nSCREENPLAY:\n' + script }];
-
-  charsWithImages.forEach(c => {
-    if (c.imageB64) {
-      const b64 = c.imageB64.split(',')[1];
-      const mimeMatch = c.imageB64.match(/data:([^;]+);/);
-      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-      parts.push({ text: `Reference image for character role: "${c.name}"` });
-      parts.push({ inline_data: { mime_type: mime, data: b64 } });
-    }
-  });
-
-  setProgress(30, 'Надсилаємо до Gemini...');
+  setProgress(30, 'Надсилаємо до GPT-4o...');
 
   try {
     const images = charsWithImages
