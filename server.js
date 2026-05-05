@@ -45,7 +45,8 @@ app.post('/api/analyze', async (req, res) => {
         model: 'gpt-4o',
         messages,
         max_tokens: 4000,
-        temperature: 0.3
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
       })
     });
 
