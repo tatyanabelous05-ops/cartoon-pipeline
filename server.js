@@ -4,12 +4,16 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', gemini_key_set: !!process.env.GEMINI_API_KEY });
+});
+
 app.post('/api/analyze', async (req, res) => {
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_KEY) {
     return res.status(500).json({ error: 'GEMINI_API_KEY not set on server' });
   }
