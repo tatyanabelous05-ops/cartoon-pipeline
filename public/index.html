@@ -294,9 +294,9 @@ async function analyze() {
     ? '\n\nCHARACTER REFERENCES:\n' + charsWithImages.map(c => `- Role: "${c.name}" ${c.imageB64 ? '(image attached)' : ''}`).join('\n')
     : '';
 
-  const systemPrompt = `You are a professional animation production assistant. Analyze the screenplay and return ONLY a valid JSON object (no markdown, no backticks, no extra text).
+  const systemPrompt = `You are a JSON API. You must respond with ONLY a valid JSON object. No explanations, no apologies, no markdown, no backticks, no text before or after the JSON. If you cannot process something, still return the JSON with your best effort. Never write "I'm sorry" or any other text.
 
-Style for this project: "${style}"${charDescSection}
+Animation project style: "${style}"${charDescSection}
 
 Return this exact JSON structure:
 {
