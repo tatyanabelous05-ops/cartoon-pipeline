@@ -331,8 +331,7 @@ Return this exact JSON structure:
       "should_split": false,
       "split_reason": "",
       "image_prompt": "Follow this exact structure: 1) Shot type (medium shot / close-up / wide shot etc) 2) Location with lighting description (e.g. 'lit by a soft warm floor lamp') 3) Characters wearing specific clothing (e.g. 'comfortable cotton pajamas') 4) Each character's exact body position, gesture, and facial expression 5) Key background details (furniture, objects, atmosphere). Use the character's visual description. Write in English, 3-5 sentences. Style: ${style}.",
-      "video_prompt": "Kling AI English prompt. Describe: 1) The motion and action in detail 2) Each character's emotional state and how it shows physically (tense shoulders, avoiding eye contact, soft smile, etc) 3) The mood/atmosphere of the scene. Then ALWAYS include ALL dialogue lines exactly as written in the screenplay — never remove, summarize or replace them, even for monologues: [DIALOGUE: Character: 'exact line']. 3-4 sentences.",
-      "heygen_notes": "If is_heygen: describe monologue delivery, emotion, pacing, character appearance"
+      "video_prompt": "Take the original scene text from the screenplay exactly as written (actions + dialogue verbatim) and add emotional descriptions for each character in parentheses — describing how they feel physically and emotionally (e.g. 'with a tense, guarded posture', 'eyes avoiding contact', 'a quiet longing in his expression'). Keep the original Ukrainian/English text. Do not rewrite, summarize or replace anything."
     }
   ],
   "total_scenes": 0,
@@ -342,10 +341,9 @@ Return this exact JSON structure:
 
 Rules:
 - PROCESS ALL SCENES — never skip any
-- is_heygen = true only if one character speaks 3+ consecutive sentences
 - should_split = true if scene has very distinct location changes
-- Describe characters in prompts by visual appearance only, never by role name
-- ALWAYS include ALL dialogue lines verbatim in video_prompt — never remove, shorten or summarize dialogue for any reason, including monologues
+- Describe characters in image_prompt by visual appearance only, never by role name
+- In video_prompt: copy the original scene text exactly and only ADD emotional descriptions in parentheses — never remove or replace original text
 - Return ONLY the JSON, nothing else`;
 
   setProgress(30, 'Надсилаємо до GPT-4o...');
@@ -397,7 +395,6 @@ function renderResults(d) {
   document.getElementById('summaryGrid').innerHTML = [
     ['Сцен всього', d.total_scenes],
     ['Персонажів', d.characters.length],
-    ['→ HeyGen', d.heygen_count],
     ['Розбити', d.split_count],
   ].map(([l, v]) => `<div class="stat"><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div>`).join('');
 
@@ -418,7 +415,6 @@ function renderResults(d) {
 
   d.scenes.forEach(s => {
     const badges = [
-      s.is_heygen ? '<span class="badge badge-heygen">HeyGen</span>' : '<span class="badge badge-kling">Kling</span>',
       s.should_split ? '<span class="badge badge-split">split</span>' : ''
     ].join('');
 
@@ -438,7 +434,7 @@ function renderResults(d) {
     };
 
     imgList.appendChild(makeItem(s.image_prompt, `img-${s.number}`));
-    vidList.appendChild(makeItem(s.is_heygen ? s.heygen_notes : s.video_prompt, `vid-${s.number}`));
+    vidList.appendChild(makeItem(s.video_prompt, `vid-${s.number}`));
 
     const anDiv = document.createElement('div');
     anDiv.className = 'prompt-item';
